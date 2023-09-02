@@ -1,82 +1,73 @@
-import mongoose from "mongoose";
+import mongoose, { InferSchemaType } from "mongoose";
 import { Schema, Document } from "mongoose";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
 import dotenv from 'dotenv'
+import { Interface } from "readline";
 dotenv.config()
 const JWT_SECRET: any = process.env.JWT_SECRET;
-interface IUser extends Document {
-    email: string;
-    username: string;
-    password: string;
-    userProfile?: Buffer;
-    tokens: string[];
-    toJSON(): any;
-}
 
-const userSchema = new Schema<IUser>({
+const userSchema = new Schema({
     email: {
         type: String,
-        require: true,
-        unique: true,
+        required: true,
+        unique: true
     },
     username: {
         type: String,
-        require: true,
+        required: true,
         unique: true
     },
     password: {
         type: String,
-        require: true
+        required: true,
     },
     userProfile: {
         type: Buffer
     },
-    tokens: [{
-        token: String,
-        require: true
-    }]
+    tokens: [{ token: { type: String, required: true } }]
 }, { timestamps: true });
 
+type User = InferSchemaType<typeof userSchema>;
+
 userSchema.methods.toJSON = function () {
-    const user = this as IUser;
+    const user = this;
     const userObject = user.toObject();
     delete userObject.password;
-    delete userObject.tokens;
     delete userObject.userProfile;
+    delete userObject.tokens;
     return userObject;
 }
 
-userSchema.pre<IUser>('save', async function (next) {
+userSchema.pre('save', async function (next) {
     const user = this;
     if (user.isModified('password')) {
-        const hashPassword = await bcrypt.hash(user.password, 8);
-        user.password = hashPassword;
+        user.password = await bcrypt.hash(user.password, 8);
     }
     next();
 })
-
-userSchema.statics.findByCredentials = async (email: string, password: string) => {
-    const user = await User.findOne({ email });
-    if (!user) {
-        throw new Error('Unable to login');
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        throw new Error('Unable to login');
-    }
-    return user;
-}
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this;
     const token = jwt.sign({ _id: user._id.toString() }, JWT_SECRET);
     user.tokens = user.tokens.concat({ token });
     await user.save();
-    return token;
+    return token
 }
 
 
-const User = mongoose.model<IUser>('User', userSchema);
+userSchema.statics.findByCredentials = async (email: string, password: string) =>{
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+        throw new Error('Unable to login');
+    }
+    const isMatch = bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        throw new Error('Unable to login');
+    }
+    return user;
+}
 
-module.exports = User;
+const UserModel = mongoose.model('User', userSchema);
+
+export default UserModel;
