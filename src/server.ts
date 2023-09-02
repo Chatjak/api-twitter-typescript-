@@ -15,6 +15,10 @@ const server = async () => {
 server();
 
 
+app.use(express.json());
+app.use(morgan('dev'));
+app.use(cors());
+
 app.get('/', (req, res) => {
     res.send('Hello, Express with TypeScript!');
 });
