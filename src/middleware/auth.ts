@@ -10,7 +10,7 @@ interface DecodedToken extends JwtPayload {
     _id: string; // Assuming _id is present in your JWT payload
 }
 
-interface AuthRequest extends express.Request {
+export interface AuthRequest extends express.Request {
     token?: string;
     user?: User;
 }

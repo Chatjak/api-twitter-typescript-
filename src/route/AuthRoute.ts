@@ -1,9 +1,10 @@
 import express from 'express'
-import UserModel, { createUser, getUser, getUserByEmail, loginUser } from '../model/user';
+import UserModel, { User, createUser, getUser, getUserByEmail, loginUser } from '../model/user';
+import Auth, { AuthRequest } from '../middleware/auth';
 const AuthRoute = express.Router();
 
 AuthRoute.post('/auth/sign-up', async (req: express.Request, res: express.Response) => {
-    const { email, username, password } = req.body
+    const { email } = req.body
     const haveUser = await getUserByEmail(email);
     if (haveUser) {
         return res.sendStatus(400);
@@ -30,6 +31,32 @@ AuthRoute.post('/auth/sign-in', async (req: express.Request, res: express.Respon
     } catch (error) {
         console.log(error);
         return res.sendStatus(400)
+    }
+})
+
+AuthRoute.post('/auth/sign-out', Auth, async (req: AuthRequest, res: express.Response) => {
+    try {
+        if (req.user) {
+            req.user.tokens = req.user.tokens.filter(token => token.token !== req.token)
+            await req.user.save()
+            return res.sendStatus(200);
+        }
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(400)
+    }
+})
+AuthRoute.post('/auth/sign-out-all', Auth, async (req: AuthRequest, res: express.Response) => {
+    try {
+        if (req.user) {
+            req.user.tokens = []
+            await req.user.save();
+            return res.sendStatus(200)
+        }
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(400);
+
     }
 })
 

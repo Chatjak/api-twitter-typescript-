@@ -1,4 +1,4 @@
-import mongoose, { Model, Document, InferSchemaType } from "mongoose";
+import mongoose, { Document, InferSchemaType } from "mongoose";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
 import dotenv from 'dotenv'
@@ -37,15 +37,20 @@ userSchema.pre('save', async function (next) {
     }
     next();
 });
+
 userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
     delete userObject.password;
     delete userObject.tokens;
+    // if (userObject.userProfile === undefined && userObject.userProfile === null) {
+    //     delete userObject.userProfile;
+    // }
     delete userObject.userProfile;
     return userObject;
 }
-export type User = InferSchemaType<typeof userSchema>;
+export type User = Document & InferSchemaType<typeof userSchema>;
+export type IUser = InferSchemaType<typeof userSchema>;
 const UserModel = mongoose.model('User', userSchema);
 
 
@@ -73,4 +78,20 @@ export const loginUser = async (email: string, password: string) => {
     await user.save();
     return { user, token }
 }
+
+export const deleteUser = async (_id: string) => {
+    try {
+        await UserModel.findByIdAndDelete(_id)
+    } catch (error) {
+        console.log(error);
+    }
+}
+export const updateUserById = async (id: string, password: string) => {
+    const user = await UserModel.findById(id)
+    if (user) {
+        user.password = password;
+        await user.save()
+    }
+    return user
+};
 export default UserModel;
