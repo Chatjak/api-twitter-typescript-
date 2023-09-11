@@ -16,16 +16,16 @@ const likeSchema = new Schema({
 
 export type Like = Document & InferSchemaType<typeof likeSchema>;
 
-const LikeModel = mongoose.model('Link', likeSchema)
+const LikeModel = mongoose.model('Like', likeSchema)
 
 export default LikeModel
 
-const findByPostId = async (postId: string) => {
+export const findByPostId = async (postId: string) => {
     const likes = await LikeModel.find({ post_id: postId }).sort({ createdAt: -1 })
     return likes
 }
 
-const findTotalByPostId = async (postId: string) => {
+export const findTotalByPostId = async (postId: string) => {
     const likes = await findByPostId(postId);
     if (!likes) {
         return 0
@@ -34,7 +34,7 @@ const findTotalByPostId = async (postId: string) => {
     return total.toString()
 }
 
-const createLike = async ({ user_id, post_id }: { user_id: string, post_id: string }) => {
+export const createLike = async (user_id: string, post_id: string) => {
     const like = new LikeModel({
         user_id: user_id,
         post_id: post_id
@@ -47,7 +47,7 @@ const createLike = async ({ user_id, post_id }: { user_id: string, post_id: stri
     }
 }
 
-const deleteLike = async ({ user_id, post_id }: { user_id: string, post_id: string }) => {
+export const deleteLike = async (user_id: string, post_id: string) => {
     const like = await LikeModel.findOneAndDelete({
         user_id: user_id,
         post_id: post_id
