@@ -53,7 +53,7 @@ postRouter.delete('/post/:id', Auth, async (req: AuthRequest, res: Response) => 
 )
 postRouter.get('/post', async (req: Request, res: Response) => {
     try {
-        const posts = await PostModel.find({}).populate('user_id').sort({ createAt: -1 })
+        const posts = await PostModel.find({}).populate('user_id').sort({ createdAt: -1 })
         if (!posts) {
             return res.status(404).send()
         }

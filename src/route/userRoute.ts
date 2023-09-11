@@ -8,7 +8,7 @@ import sharp from "sharp";
 
 userRouter.get('/user/me', Auth, async (req: AuthRequest, res: Response) => {
 
-    const data = [req.user, req.user?.userProfile]
+    const data = req.user
     res.send(data)
 })
 userRouter.get('/user/:id', async (req, res) => {
@@ -17,7 +17,8 @@ userRouter.get('/user/:id', async (req, res) => {
     if (!user) {
         return res.sendStatus(404);
     }
-    const data = [user, user?.userProfile]
+    // const data = [user, user?.userProfile]
+    const data = user
     res.send(data)
 })
 
@@ -70,6 +71,21 @@ userRouter.get('/user/me/userProfile', Auth, async (req: AuthRequest, res: expre
         console.log(error);
         return res.sendStatus(400)
 
+    }
+})
+
+userRouter.get('/user/:id/userProfile', async (req: AuthRequest, res: express.Response) => {
+    try {
+        const id = req.params.id
+        const user = await UserModel.findById(id);
+        if (!user) {
+            res.status(404).send()
+        }
+        res.set('Content-Type', 'image/png');
+        res.send(user?.userProfile);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send()
     }
 })
 
