@@ -25,6 +25,14 @@ export const findByPostId = async (postId: string) => {
     return likes
 }
 
+export const hasLike = async (user_id: string, post_id: string) => {
+    const like = await LikeModel.findOne({ user_id: user_id, post_id: post_id });
+    if (!like) {
+        return false
+    }
+    return true
+}
+
 export const findTotalByPostId = async (postId: string) => {
     const likes = await findByPostId(postId);
     if (!likes) {

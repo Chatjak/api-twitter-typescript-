@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 const userRouter = express.Router();
-import UserModel, { deleteUser, updateUserById } from "../model/user";
+import UserModel, { deleteUser, findByUsername, updateUserById } from "../model/user";
 import Auth, { AuthRequest } from "../middleware/auth";
 import multer from 'multer'
 import sharp from "sharp";
@@ -38,9 +38,6 @@ userRouter.delete('/user/me', Auth, async (req: AuthRequest, res: Response) => {
 //upload userProfile
 const upload = multer({
     fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG)/)) {
-            return cb(new Error('please upload a jpg jpeg or png'))
-        }
         cb(null, true)
     }
 })
@@ -78,8 +75,8 @@ userRouter.get('/user/:id/userProfile', async (req: AuthRequest, res: express.Re
     try {
         const id = req.params.id
         const user = await UserModel.findById(id);
-        if (!user) {
-            res.status(404).send()
+        if (!user?.userProfile) {
+            return res.sendStatus(404)
         }
         res.set('Content-Type', 'image/png');
         res.send(user?.userProfile);
@@ -101,6 +98,21 @@ userRouter.patch('/user/me/password', Auth, async (req: AuthRequest, res: expres
         return res.sendStatus(500);
     }
 });
+
+userRouter.get('/user/byUser/:username', async (req: Request, res: Response) => {
+    try {
+        const username = req.params.username
+        const user = await findByUsername(username);
+        if (!user) {
+            throw new Error()
+        }
+        res.send(user)
+    } catch (error) {
+        console.log(error);
+        res.status(500).send()
+
+    }
+})
 
 
 

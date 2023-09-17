@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 const likeRouter = express.Router();
 import Auth, { AuthRequest } from "../middleware/auth";
-import LikeModel, { createLike, deleteLike, findTotalByPostId } from "../model/like";
+import LikeModel, { createLike, deleteLike, findTotalByPostId, hasLike } from "../model/like";
 
 likeRouter.post('/like/:postId', Auth, async (req: AuthRequest, res: Response) => {
     try {
@@ -44,6 +44,20 @@ likeRouter.get('/like/:postId/total', Auth, async (req: AuthRequest, res: Respon
         const postId = req.params.postId
         const likes = await findTotalByPostId(postId)
         res.send(likes)
+    } catch (error) {
+        console.log(error);
+        res.status(500).send()
+
+    }
+})
+
+likeRouter.get('/like/:postId/hasLike', Auth, async (req: AuthRequest, res: Response) => {
+    try {
+        const postId = req.params.postId;
+        if (req.user) {
+            const like = await hasLike(req.user._id, postId);
+            res.send(like)
+        }
     } catch (error) {
         console.log(error);
         res.status(500).send()

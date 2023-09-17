@@ -22,6 +22,10 @@ export const createPost = async (id: string, content: string) => {
     return post
 }
 
+export const findByMe = async (user_id: string) => {
+    const posts = await PostModel.find({ user_id: user_id }).populate('user_id').sort({ createdAt: -1 })
+    return posts
+}
 
 
 

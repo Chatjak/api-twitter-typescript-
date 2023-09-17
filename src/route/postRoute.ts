@@ -1,7 +1,8 @@
 import express, { Request, Response } from "express";
 const postRouter = express.Router();
 import Auth, { AuthRequest } from "../middleware/auth";
-import PostModel, { createPost } from "../model/post";
+import PostModel, { createPost, findByMe } from "../model/post";
+import { findByUsername } from "../model/user";
 
 postRouter.post('/post/create', Auth, async (req: AuthRequest, res: Response) => {
     try {
@@ -20,7 +21,7 @@ postRouter.post('/post/create', Auth, async (req: AuthRequest, res: Response) =>
 postRouter.get('/post/:id', async (req: Request, res: Response) => {
     try {
         const id = req.params.id
-        const post = await PostModel.findById(id)
+        const post = await PostModel.findById(id).populate('user_id')
         if (!post) {
             res.status(404).send()
         }
@@ -59,6 +60,19 @@ postRouter.get('/post', async (req: Request, res: Response) => {
         }
         res.send(posts)
     } catch (error) {
+        console.log(error);
+        res.status(500).send()
+    }
+})
+postRouter.get('/post/:username/allPosts', async (req: AuthRequest, res: Response) => {
+    try {
+        const username = req.params.username
+        const user = await findByUsername(username)
+        const user_id: string = user._id.toString();
+        const posts = await findByMe(user_id);
+        res.send(posts)
+    }
+    catch (error) {
         console.log(error);
         res.status(500).send()
     }

@@ -94,4 +94,13 @@ export const updateUserById = async (id: string, password: string) => {
     }
     return user
 };
+
+export const findByUsername = async (username: string) => {
+    const user = await UserModel.findOne({ username: username })
+    if (!user) {
+        throw new Error()
+    }
+    return user
+}
+
 export default UserModel;
